@@ -1,0 +1,4 @@
+#track .htaccess files
+!*/backend/web/.htaccess
+!*/frontend/web/.htaccess
+!supervisord.conf
