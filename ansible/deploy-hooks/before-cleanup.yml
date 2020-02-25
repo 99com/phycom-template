@@ -1,0 +1,8 @@
+---
+- name: Register num releases
+  find:
+    paths: "{{ ansistrano_releases_path }}/"
+    file_type: directory
+    patterns: "*"
+  register: num_releases
+

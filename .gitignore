@@ -25,6 +25,9 @@
 # phycom dev module path
 /phycom
 
+# main config file
+/config.php
+
 # composer itself is not needed
 composer.phar
 

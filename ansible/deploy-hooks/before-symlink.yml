@@ -1,0 +1,12 @@
+---
+- name: Initialize the app
+  command: bash -lc "cd {{ ansistrano_release_path.stdout }} && echo \"All\" | ./init --env={{ app_env }}"
+
+- name: Install vendor dependencies
+  command: bash -lc "cd {{ ansistrano_release_path.stdout }} && composer install"
+
+- name: Migrate db
+  command: bash -lc "cd {{ ansistrano_release_path.stdout }} && source /etc/environment && ./yii migrate --interactive=0"
+
+- name: Flush the cache
+  command: bash -lc "cd {{ ansistrano_release_path.stdout }} && source /etc/environment && ./yii cache/flush-all"

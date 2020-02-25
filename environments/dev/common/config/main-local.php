@@ -9,15 +9,5 @@ return [
 				]
 			]
 		]
-	],
-    'components' => [
-	    'urlManagerFrontend' => [
-		    'baseUrl' => '/',
-		    'hostInfo' => 'http://' . getenv('PUBLIC_HOST') . '/',
-	    ],
-	    'urlManagerBackend' => [
-		    'baseUrl' => '/',
-		    'hostInfo' => 'http://' . getenv('ADMIN_HOST') . '/',
-	    ],
-    ],
+	]
 ];
