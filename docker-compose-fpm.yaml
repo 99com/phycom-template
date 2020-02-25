@@ -1,0 +1,144 @@
+# use version 3 of the docker compose syntax
+version: '3'
+services:
+
+  ###############################
+  ### Beanstalkd workqueue
+  ###############################
+  beanstalk:
+    image: schickling/beanstalkd:latest
+    restart: always
+
+  ###############################
+  ### Redis caching service
+  ###############################
+  redis:
+    image: redis:5.0.7-alpine
+    volumes:
+      - ./var
+    restart: always
+
+  ###############################
+  ### Postgres database server
+  ###############################
+  db:
+    # pass a hostname to the container
+    hostname: db
+    # Use the most current postgres version to date
+    image: postgres:latest
+    volumes:
+      - ./docker/postgres/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+      - dbdata:/var/lib/postgresql/data
+      - ./docker/postgres/pg_hba.conf:/var/lib/postgresql/data/pg_hba.conf
+
+    # Whenever container crashes, start it up again ( re-start )
+    restart: always
+
+    # Environment values
+    env_file:
+      - .env
+    environment:
+      - DEBUG=true
+      - POSTGRES_DB=${APP_DB_NAME}
+      - POSTGRES_USER=${APP_DB_USER}
+      - POSTGRES_PASSWORD=${APP_DB_PASS}
+
+    # map host port 15432 to container port 5432
+    ports:
+      - 15432:5432
+
+  ###############################
+  ### nGinx webserver
+  ###############################
+  web:
+    image: nginx:latest
+    restart: always
+    command: ["nginx", "-g", "daemon off;"]
+#    command: ["sh", "/phycom/is-db-ready.sh", "db", "nginx -g daemon off;"]
+    # map host port 8081 to container port 80
+    ports:
+      - 80:80
+    volumes:
+      - ./frontend/web:/var/www/phycom/current/frontend/web
+      - ./backend/web:/var/www/phycom/current/backend/web
+
+      - ./files/content:/var/www/phycom/current/frontend/web/file/download/content
+      - ./files/invoice:/var/www/phycom/current/frontend/web/file/download/invoice
+      - ./files/product:/var/www/phycom/current/frontend/web/file/download/product
+
+      - ./files/content:/var/www/phycom/current/backend/web/file/download/content
+      - ./files/invoice:/var/www/phycom/current/backend/web/file/download/invoice
+      - ./files/product:/var/www/phycom/current/backend/web/file/download/product
+
+      - ./docker/nginx/site.conf:/etc/nginx/conf.d/site.conf
+    depends_on:
+      - php
+    networks:
+      default:
+        aliases:
+          - ${PUBLIC_HOST}
+          - ${ADMIN_HOST}
+          - ${API_HOST}
+
+  ###############################
+  ### PHP FPM service
+  ###############################
+  php:
+    image: phycom-php-fpm
+    restart: always
+    build:
+      context: docker/php-fpm
+      dockerfile: Dockerfile
+    command: ["sh", "docker/postgres/is-db-ready.sh", "db", "php-fpm"]
+    env_file:
+      - .env
+    volumes:
+      - .:/var/www/phycom/current:delegated
+    depends_on:
+      - db
+      - redis
+      - beanstalk
+
+  ###############################
+  ### High priority queue worker
+  ###############################
+  php-hp-worker:
+    image: phycom-php-cli
+    build:
+      context: docker/php-cli
+      dockerfile: Dockerfile
+    restart: always
+    command: ["./yii", "queue1/listen", "--verbose"]
+    env_file:
+      - .env
+    volumes:
+      - .:/var/www/phycom/current:delegated
+    depends_on:
+      - db
+      - redis
+      - beanstalk
+      - php
+
+  ##############################
+  ## Low priority queue worker
+  ##############################
+  php-lp-worker:
+    image: phycom-php-cli
+    build:
+      context: docker/php-cli
+      dockerfile: Dockerfile
+    restart: always
+    command: ["./yii", "queue2/listen", "--verbose"]
+    env_file:
+      - .env
+    volumes:
+      - .:/var/www/phycom/current:delegated
+    depends_on:
+      - db
+      - redis
+      - beanstalk
+      - php
+
+# if you want to reuse a volume across multiple services, then define a named volume in the top-level volumes key. Use named volumes with services, swarms, and stack files.
+volumes:
+  dbdata:

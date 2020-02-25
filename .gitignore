@@ -1,0 +1,44 @@
+# yii console commands
+/yii
+/yii_test
+/yii_test.bat
+
+
+# phpstorm project files
+.idea
+
+#dont track .htaccess files
+.htaccess
+
+#gzip files
+*.gz
+
+#.sass-cache dir
+.sass-cache
+
+# user files
+/files/user
+
+# composer vendor dir
+/vendor
+
+# phycom dev module path
+/phycom
+
+# composer itself is not needed
+composer.phar
+
+# phpunit itself is not needed
+phpunit.phar
+# local phpunit config
+/phpunit.xml
+
+# vagrant virtual machines
+.vagrant
+
+# Mac DS_Store Files
+.DS_Store
+
+# office temp files
+~$*
+/.project

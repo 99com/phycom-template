@@ -1,0 +1,51 @@
+{
+    "name": "double9/phycom-template",
+    "description": "Phycom ecommerce platform template",
+    "keywords": ["yii2", "framework", "advanced", "project template"],
+    "homepage": "https://x89.eu/",
+    "type": "project",
+    "license": "BSD-3-Clause",
+    "support": {
+        "issues": "https://github.com/yiisoft/yii2/issues?state=open",
+        "forum": "http://www.yiiframework.com/forum/",
+        "wiki": "http://www.yiiframework.com/wiki/",
+        "irc": "irc://irc.freenode.net/yii",
+        "source": "https://github.com/yiisoft/yii2"
+    },
+    "minimum-stability": "beta",
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://asset-packagist.org"
+        },
+        {
+            "type": "vcs",
+            "url": "https://taiv0@bitbucket.org/double9/phycom.git"
+        }
+    ],
+    "require": {
+        "double9/phycom": "@dev",
+        "kartik-v/yii2-social": "@dev"
+    },
+    "require-dev": {
+        "yiisoft/yii2-gii": "*",
+        "yiisoft/yii2-debug": "2.0.13",
+        "yiisoft/yii2-faker": "~2.0.0",
+        "codeception/codeception": "2.4.4",
+        "codeception/aspect-mock": "^2.2",
+        "codeception/specify": "0.4.6",
+        "codeception/verify": "0.4.0",
+        "phpmd/phpmd": "^2.6",
+        "codeception/stub": "2.0.1"
+    },
+    "config": {
+        "process-timeout": 1800,
+        "github-oauth": {
+            "github.com": "cd86a9bef7d4ddfd4024ab2a9fc1d92b27ec8b90"
+        },
+        "fxp-asset": {
+            "enabled": false
+        }
+    },
+    "extra": {}
+}

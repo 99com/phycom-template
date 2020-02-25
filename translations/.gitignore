@@ -1,0 +1,11 @@
+# Ignore everything in this directory
+*
+
+# Except files:
+
+!.gitignore
+!*.po
+!*.pot
+
+# ...even if they are in subdirectories
+!*/

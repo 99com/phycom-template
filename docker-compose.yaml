@@ -1,0 +1,122 @@
+# use version 3 of the docker compose syntax
+version: '3'
+services:
+
+  ###############################
+  ### Beanstalkd workqueue
+  ###############################
+  beanstalk:
+    image: schickling/beanstalkd:latest
+    restart: always
+
+  ###############################
+  ### Redis caching service
+  ###############################
+  redis:
+    image: redis:5.0.7-alpine
+    volumes:
+      - ./var
+    restart: always
+
+  ###############################
+  ### Postgres database server
+  ###############################
+  db:
+    # pass a hostname to the container
+    hostname: db
+    # Use the most current postgres version to date
+    image: phycom-postgres
+    build:
+      context: docker/postgres
+      dockerfile: Dockerfile
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    # Whenever container crashes, start it up again ( re-start )
+    restart: always
+    # Environment values
+    env_file:
+      - .env
+    environment:
+      - DEBUG=true
+      - POSTGRES_DB=${APP_DB_NAME}
+      - POSTGRES_USER=${APP_DB_USER}
+      - POSTGRES_PASSWORD=${APP_DB_PASS}
+
+    # map host port 15432 to container port 5432
+    ports:
+      - 15432:5432
+
+  ###############################
+  ### Apache server and php as module
+  ###############################
+  php:
+    image: phycom-php-apache
+    restart: always
+    build:
+      context: docker/php-apache
+      dockerfile: Dockerfile
+    command: ["sh", "docker/postgres/is-db-ready.sh", "db", "apache2-foreground"]
+    env_file:
+      - .env
+    environment:
+      - COMPOSER_MEMORY_LIMIT=-1
+    ports:
+      - 80:80
+    volumes:
+      - ./docker/php-apache/sites-localhost.conf:/etc/apache2/sites-available/000-default.conf
+      - .:/var/www/phycom/current:delegated
+    depends_on:
+      - db
+      - redis
+      - beanstalk
+    networks:
+      default:
+        aliases:
+          - ${PUBLIC_HOST}
+          - ${ADMIN_HOST}
+          - ${API_HOST}
+
+
+  ###############################
+  ### High priority queue worker
+  ###############################
+  php-hp-worker:
+    image: phycom-php-cli
+    build:
+      context: docker/php-cli
+      dockerfile: Dockerfile
+    restart: always
+    command: ["./yii", "queue1/listen", "--verbose"]
+    env_file:
+      - .env
+    volumes:
+      - .:/var/www/phycom/current:delegated
+    depends_on:
+      - db
+      - redis
+      - beanstalk
+      - php
+
+  ##############################
+  ## Low priority queue worker
+  ##############################
+  php-lp-worker:
+    image: phycom-php-cli
+    build:
+      context: docker/php-cli
+      dockerfile: Dockerfile
+    restart: always
+    command: ["./yii", "queue2/listen", "--verbose"]
+    env_file:
+      - .env
+    volumes:
+      - .:/var/www/phycom/current:delegated
+    depends_on:
+      - db
+      - redis
+      - beanstalk
+      - php
+
+# if you want to reuse a volume across multiple services, then define a named volume in the top-level volumes key. Use named volumes with services, swarms, and stack files.
+volumes:
+  dbdata:
