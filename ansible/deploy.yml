@@ -5,7 +5,7 @@
   vars:
     ansistrano_deploy_via: git
     # Set your real repository here
-    ansistrano_git_repo: git@bitbucket.org:double9/phycom-template.git
+    ansistrano_git_repo: git@github.com:99com/phycom-template.git
     ansistrano_git_branch: "{{ branch }}"
     # Set this to the destination where the app will be deployed on remote server
     ansistrano_deploy_to: "{{ deploy_root }}"
