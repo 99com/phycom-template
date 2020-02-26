@@ -1,7 +1,9 @@
 ---
 - name: Deploys phycom app to a server
   hosts: "{{ hosts }}"
+  gather_facts: no
   vars:
+    ansistrano_deploy_via: git
     # Set your real repository here
     ansistrano_git_repo: git@bitbucket.org:double9/phycom-template.git
     ansistrano_git_branch: "{{ branch }}"
@@ -13,8 +15,7 @@
       - files
     ansistrano_shared_files:
       - config.php
-    # There seems to be an issue with rsync in vagrant
-    ansistrano_deploy_via: git
+    ansistrano_allow_anonymous_stats: No
     ansistrano_before_symlink_tasks_file: deploy-hooks/before-symlink.yml
     ansistrano_before_cleanup_tasks_file: deploy-hooks/before-cleanup.yml
     ansistrano_after_symlink_tasks_file: deploy-hooks/after-cleanup.yml
